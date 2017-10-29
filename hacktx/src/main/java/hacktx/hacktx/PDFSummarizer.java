@@ -7,7 +7,7 @@ public class PDFSummarizer {
 	
 	public static void main(String[] args) throws IOException {
 		parser = new PDFParser();
-		parser.readFile("C:\\Users\\Denalex\\Desktop\\SamplePDF\\Samples\\GAN.pdf");
+		parser.readFile("C:\\Users\\Denalex\\Desktop\\SamplePDF\\Samples\\Rome.pdf");
 		//parser.printSplitText();
 		parser.printText();
 		parser.detectLinks();

@@ -31,7 +31,14 @@ public class PDFParser
 	Map<String, Long> wordMap;
 	List<String> links;
 	String pdfText;
-	HashSet<String> nonTermSet = new HashSet<String>(Arrays.asList("the", "there", "it", "is", "of", " ", "thus", "these"));
+	HashSet<String> nonTermSet = new HashSet<String>(Arrays.asList("the", "there", "it", "is", "of", " ",
+																	"thus", "these", "for", "be", "an", "by", "with", "if",
+																	"in", "example", "and", "this", "to", 
+																	"same", "well", "better", "then", "have", "each", 
+																	"one", "two", "three", "four", "five", "six", "seven",
+																	"eight", "nine" , "ten", "we", "are", "all", "as", 
+																	"from", "using", "al", "at", "et", "that", "on", "or",
+																	"not"));
 	
 	public PDFParser() {
 		wordMap = new HashMap<String, Long>();
@@ -73,9 +80,11 @@ public class PDFParser
 	}
 	
 	public boolean checkValidTerm(String word) {
+		if (word.length()<= 1) {return false;}
+		
 	    for (int i=0; i< word.length(); i++) {
 	        char c = word.charAt(i);
-	        if (Character.isLetter(c))
+	        if (!Character.isLetter(c))
 	            return false;
 	    }
 	    
@@ -146,10 +155,10 @@ public class PDFParser
 		int count = 0;
 		for (String word : wordMap.keySet()) {
 			if (count < 10) {
-				if (wordMap.get(word) > 5) {
+				if (wordMap.get(word) > (wordMap.size() * 0.02)) {
 					try {
-						contentStream.showText(word);
 						contentStream.newLineAtOffset(0, -15);
+						contentStream.showText(word);
 						count++;
 					} catch (Exception e) {
 						continue;
@@ -161,6 +170,7 @@ public class PDFParser
 		}
 		
 		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+		contentStream.newLineAtOffset(0, -30);
 		contentStream.showText("Links:");
 		contentStream.setFont(PDType1Font.HELVETICA, 11);
 		for (String link : links) {
@@ -168,25 +178,40 @@ public class PDFParser
 			contentStream.showText(link);
 		}
 		
+		///////////////////////////////////////////////////
+		contentStream.endText();
+		contentStream.close();
+		
+		page = new PDPage();
+		newDocument.addPage(page);
+		
+		contentStream = new PDPageContentStream(newDocument, newDocument.getPage(1));
+		contentStream.beginText();
+		contentStream.newLineAtOffset(25, 700);
+		
 		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
 		contentStream.showText("Images:");
-		contentStream.newLineAtOffset(0, -15);
 		contentStream.endText();
 		
-		PDPageTree list = newDocument.getPages();
+		PDPageTree list = document.getPages();
 	    for (PDPage page1 : list) {
 	        PDResources pdResources = page1.getResources();
+	        int x = 25;
+	        int y = 550;
 	        for (COSName c : pdResources.getXObjectNames()) {
 	            PDXObject o = pdResources.getXObject(c);
 	            if (o instanceof org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject) {
-	            	contentStream.newLineAtOffset(0, -15);
-	                contentStream.drawImage((PDImageXObject) o, 50, 75);
+	                contentStream.drawImage((PDImageXObject) o, x, y, 75, 75);
+	                x += 105;
+	                if (x >= 600) {
+	                	x = 25;
+	                	y -= 105;
+	                }
 	            }
 	        }
 	    }
+	    contentStream.close();
 	    
-	    
-		contentStream.close();
 		newDocument.save(path + "\\" + name);
 		newDocument.close();
 	}
