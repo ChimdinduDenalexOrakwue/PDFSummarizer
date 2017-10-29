@@ -140,16 +140,30 @@ public class PDFParser
 	    }
 	}
 	
-	public void createNewDocument(String path, String name) throws IOException {
+	public void createNewDocument(HashSet<String> set, String path, String name) throws IOException {
 		PDDocument newDocument = new PDDocument();
 		PDPage page = new PDPage();
 		newDocument.addPage(page);
 		
 		PDPageContentStream contentStream = new PDPageContentStream(newDocument, newDocument.getPage(0));
 		contentStream.beginText();
-		contentStream.newLineAtOffset(100, 700);
+		contentStream.newLineAtOffset(20, 750);
 		
 		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+		contentStream.showText("Summary:");
+		contentStream.setFont(PDType1Font.HELVETICA, 11);
+		for (String sentence : set) {
+			try {
+				contentStream.newLineAtOffset(0, -15);
+				contentStream.showText(sentence);
+			} catch (Exception e) {
+				continue;
+			}	
+		}
+		
+		
+		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+		contentStream.newLineAtOffset(0, -30);
 		contentStream.showText("Key Terms:");
 		contentStream.setFont(PDType1Font.HELVETICA, 11);
 		int count = 0;
@@ -178,40 +192,9 @@ public class PDFParser
 			contentStream.showText(link);
 		}
 		
-		///////////////////////////////////////////////////
 		contentStream.endText();
 		contentStream.close();
 		
-		page = new PDPage();
-		newDocument.addPage(page);
-		
-		contentStream = new PDPageContentStream(newDocument, newDocument.getPage(1));
-		contentStream.beginText();
-		contentStream.newLineAtOffset(25, 700);
-		
-		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-		contentStream.showText("Images:");
-		contentStream.endText();
-		
-		PDPageTree list = document.getPages();
-	    for (PDPage page1 : list) {
-	        PDResources pdResources = page1.getResources();
-	        int x = 25;
-	        int y = 550;
-	        for (COSName c : pdResources.getXObjectNames()) {
-	            PDXObject o = pdResources.getXObject(c);
-	            if (o instanceof org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject) {
-	                contentStream.drawImage((PDImageXObject) o, x, y, 75, 75);
-	                x += 105;
-	                if (x >= 600) {
-	                	x = 25;
-	                	y -= 105;
-	                }
-	            }
-	        }
-	    }
-	    contentStream.close();
-	    
 		newDocument.save(path + "\\" + name);
 		newDocument.close();
 	}
